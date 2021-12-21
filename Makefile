@@ -2,9 +2,9 @@
 # https://deploy-preview-35687--osdocs.netlify.app/openshift-enterprise/latest/hardware_enablement/psap-special-resource-operator.html#using-the-special-resource-operator
 
 HELM			?= $(shell pwd)/bin/linux-amd64/helm
-SRO_NS			?= sro
+SRO_NS			?= sts-silicom
 OPERATOR_NS		?= sts-silicom
-STS_NODE		?= worker2
+STS_NODE		?= du3-ldc1
 SPECIAL_RESOURCE = ice-special-resource
 ICE_VERSION      ?= 1.6.7
 .PHONY: package helm ns clean helm-chart sro-driver
@@ -27,11 +27,12 @@ helm:
 helm-chart: package
 	-rm charts/cm/*.tgz
 	mv $(SPECIAL_RESOURCE)-0.0.1.tgz charts/cm/
-	cd charts && $(HELM) repo index cm --url=http://ice-driver-src:3000/ice-special-resource/
+	#cd charts && $(HELM) repo index cm --url=http://ice-driver-src:3000/ice-special-resource/
+	cd charts && $(HELM) repo index cm --url=cm://sts-silicom/ice-special-resource
 
 clean:
-	-oc label nodes specialresource.openshift.io/state-$(ICE_SPECIAL_RESOURCE)-0000- --all
-	-oc label nodes specialresource.openshift.io/state-$(ICE_SPECIAL_RESOURCE)-1000- --all
+	-oc label nodes specialresource.openshift.io/state-$(SPECIAL_RESOURCE)-0000- --all
+	-oc label nodes specialresource.openshift.io/state-$(SPECIAL_RESOURCE)-1000- --all
 
 sro-ns:
 	- oc delete ns $(SRO_NS)
@@ -63,4 +64,4 @@ $(SPECIAL_RESOURCE): clean helm-chart ice.tgz lose-images
 	oc apply -f cr/sro/ice-cr.yaml
 
 charts-image:
-	docker build . -f docker/Dockerfile -t quay.io/silicom/ice-driver-src:$(ICE_VERSION)
+	docker build . -f docker/Dockerfile -t quay.io/jnunyez/ice-driver-src:$(ICE_VERSION)

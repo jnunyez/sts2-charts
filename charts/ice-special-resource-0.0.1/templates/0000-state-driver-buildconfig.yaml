@@ -1,3 +1,14 @@
+---
+
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    app: {{.Values.specialresource.metadata.name}}-{{.Values.groupName.driverContainer}}
+  name: {{.Values.specialresource.metadata.name}}-{{.Values.groupName.driverContainer}}
+
+---
+
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
@@ -16,7 +27,9 @@ spec:
     limits:
       ephemeral-storage: "10Gi"
   runPolicy: "Serial"
-
+  triggers:
+   - type: "ConfigChange"
+   - type: "ImageChange"
   source:
     configMaps:
       - configMap:
@@ -49,8 +62,8 @@ spec:
           value: {{ $arg.value }}
         {{- end }}
         - name: BUILD_BASE
-#          value: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:aea6d1e324558e2484bb14d6ffb8455fc752628c12118e8f33c8ae0a31990e06
-          value: {{.Values.driverToolkitImage}}
+          value: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:bb5c296b4a6125f475906f457cdf2ffd35d3d70d333073a7735c2dfb29225d6d
+          #value: {{.Values.driverToolkitImage}}
 
   output:
     to:
